@@ -1,0 +1,760 @@
+--Appium:
+  ------
+  -Appium is open source mobile automation tool for testing native apps(Android and iOS) and mobile browsers
+  -Appium internally uses webdriver json wire(Which selenium does) to test the apps. So it is just like selenium but for mobile.
+--Appium Feature:
+  --------------
+  -Open source mobile automation tool
+  -The only cross-platform test supporting tool
+  -Works for native, hybrid and mobile web apps
+  -Supports web driver API-Selenium family
+  -Supported Platforms -> iOS, Android, Firefox OS
+  -We can write the code in any language supported by WebDriver: Java, C#, Javascript, Python, Ruby
+
+--Appium Internal Architecture:
+  ----------------------------
++-----------------------+     JSON (W3C WebDriver)     +-----------------------+     +--------------------+     +------------------+
+|   Appium Client Code  |  --------------------------> |     Appium Server     | --> |   UIAutomator2     | --> |   Android Device |
+|  (Java / Python / JS) |                              |      (Node.js)        |     |     (Android)      |     |   / Emulator     |
++-----------------------+                              +-----------------------+     +--------------------+     +------------------+
+
+                                                         OR
+
++-----------------------+     JSON (W3C WebDriver)     +-----------------------+     +--------------------+     +------------------+
+|   Appium Client Code  |  --------------------------> |     Appium Server     | --> |     XCUITest       | --> |     iOS Device   |
+|  (Java / Python / JS) |                              |      (Node.js)        |     |       (iOS)        |     |    / Simulator   |
++-----------------------+                              +-----------------------+     +--------------------+     +------------------+
+
+  -Appium follows a client-server architecture. First, we write test scripts using languages like Java or Python with the WebDriver API. When we execute the script, 
+  it sends commands in JSON format following the W3C WebDriver protocol to the Appium server.
+  -The Appium server, which runs on Node.js (default port 4723), receives these requests and translates them into platform-specific commands.
+  -For Android, it uses UIAutomator2, and for iOS, it uses XCUITest. These drivers interact with the mobile device or emulator to perform actions like click, send keys, or swipe.
+  -Finally, the response is sent back from the device to the Appium server and then to the client script.
+  
+--Download Java, Android Studio and Node Software for Appium setup:
+  ----------------------------------------------------------------
+  -Install Java and Setup JAVA_HOME in system environments
+  -Install Android Studio and find out the Android SDK path
+   https://developer.android.com/codelabs/basic-android-kotlin-compose-install-android-studio#0
+   https://developer.android.com/studio#get-android-studio  --> Scroll down for downloading
+   SDK Folder: C:\Users\Rohit\AppData\Local\Android\Sdk 
+   (On Android studio installation this sdk folder will automatically appear in this path in windows)  --> ANDROID_HOME (Set in system variable)
+  -By default we will not see tools folder --> For to make it visible --> Go to Android Studio --> C:/Program Files/Android/Android Studio/bin
+                                               Click on studio64(Application) -> Need to download tools 
+                                               Select a project template -> Basic Activity(Select it) -> Next -> Finish
+                                               Click on SDK manager --> We can see SDK Platforms, SDK tools
+                                                                    --> Go to SDK tools --> uncheck Hide obsolete packages (at bottom)
+                                                                    --> Check SDK Tools(Obsolete) --> Click on Apply
+                                               Go to SDK->Tools->bin-> Copy the location --> Go to system variables --> Add in path
+                                               Got to Android->sdk->tools --> Add this in path 
+                                               Also sdk->Platform tools --> Add in path
+                                               Also set NODE_HOME and add npm/bin folder in path
+
+--Set Environment variable paths of all softwares in MAC:
+  ------------------------------------------------------
+  Check which is your terminal-->echo $SHELL
+  -Open bash profile and add paths: vi ~/.bash_profile
+
+  press i and then add
+
+  # =========================
+# JAVA CONFIGURATION
+# =========================
+export JAVA_HOME=$(/usr/libexec/java_home -v17)
+export PATH="$JAVA_HOME/bin:$PATH"
+
+# =========================
+# ANDROID SDK CONFIGURATION
+# =========================
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+
+export PATH="$ANDROID_HOME/platform-tools:$PATH"
+export PATH="$ANDROID_HOME/emulator:$PATH"
+export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+
+# =========================
+# OPTIONAL (Homebrew path)
+# =========================
+export PATH="/usr/local/bin:$PATH"
+
+-then run source ~/.bash_profile
+
+-If echo $SHELL gives output as /bin/zsh then, vi ~/.zshrc
+
+press and enter like
+
+export JAVA_HOME=$(/usr/libexec/java_home -v17)
+export MAVEN_HOME=/usr/local/Cellar/maven/3.9.x/libexec
+export PATH=$MAVEN_HOME/bin:$PATH
+export PATH="/usr/local/mysql/bin:$PATH"
+
+# bun completions
+[ -s "/Users/rohit-mac/.bun/_bun" ] && source "/Users/rohit-mac/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export PATH=/usr/local/mongodb/bin:$PATH
+export PATH=/usr/local/mongosh/bin:$PATH
+export PATH="/usr/local/bin:/usr/local/opt/maven/bin:$PATH"
+export PATH="/usr/local/opt/mysql@8.0/bin:$PATH"
+export PATH="/Volumes/Element/Projects/Practice/Playwright TypeScript Practice/Typescript basics/node_modules/.bin:$PATH"
+
+# =========================
+# APPIUM / ANDROID SETUP
+# =========================
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+
+export PATH="$ANDROID_HOME/platform-tools:$PATH"
+export PATH="$ANDROID_HOME/emulator:$PATH"
+export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+
+-then, source ~/.zshrc
+Then check echo $ANDROID_HOME
+adb devices  -> To check devices connected
+
+To open any path  -> open /Users/rohit-mac/Library/Android/sdk
+Note:  We explicitly need not to set Node path as it already(executable files) present in usr/local/bin
+       Also for python
+
+--Configure Android Virtual Device/Emulator and Install Appium Server:
+  -------------------------------------------------------------------
+  -Open Android Studio --> Create new project --> Basic Activity --> Finish 
+   Go to Tools in navigation menu --> Device Manager(Place where we will create virtual device)
+                                  --> Click on + --> create virtual device 
+                                      Select Hardware --> Select device name, os,  
+                                      AVD Name(Required in Automation) --> Finish
+   Go to Device Manager --> We can see device --> Click on Play button
+  -Download Appium Server(Port:4723) ->You have to start it before we run any of our script
+   Windows: npm install -g appium
+   MAC: sudo npm install -g appium
+
+--Setting up appium maven project with Java Client dependencies:
+  -------------------------------------------------------------
+  -Install eclips/Intellij for Java Code 
+  -Create new maven project
+   In Eclipse: Click on create a project --> Select Maven --> select maven project --> Next --> Next
+               archetype: maven-archetype-quickstart
+               GroupId: com.alchemist (to uniquely identify project)
+               ArtifactId: Appium
+               package: com.alchemist
+               Finish
+   Go to pom.xml --> Add following dependencies -> testNG, appium java-client
+   Then build project
+Note: To install TestNg plugin go to eclipse marketplace --> Search for testng
+      testNg 7.x.x is commpatible with Java 11+
+      testNG 6.x.x is compatible with Java 8
+	  
+--UiAutomator and its object to define capabilities:
+  -------------------------------------------------
+ -UiAutomator is a UI testing framework introduced by Google to facillitate automation on a android device or emulator
+ -Appium leverages this UiAutomator with its own wrapper and come up with UiAutomator2 driver to automate the android apps
+ -To See Appium driver list --> Open terminal--
+  %appium driver list --> Gives list of driver required to install
+  %appium driver install UiAutomator2 --> run this command to install.
+  Note: Install UiAutomator, gecko ,xcuitest
+ -Go to test/java  --> create package -->com.alchemist --> create AppiumBasics.java --> Finish
+  create resources folder in src/test/java and store all app files (eg: ApiDemo-debug.apk)
+  
+package com.alchemist;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import org.testng.annotations.Test;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.options.UiAutomator2Options;
+import io.appium.java_client.service.local.AppiumDriverLocalService;
+import io.appium.java_client.service.local.AppiumServiceBuilder;
+
+public class AppiumBasics {
+	
+	@Test
+	public void appiumTest() throws MalformedURLException {
+		/*
+		 * Start and stop appium server programmatically using AppiumServiceBuilder
+		 * Create object of AppiumServiceBuilder
+		 * And tell where your main.js file(responsible for invoking appium server)
+		 * Give path below with use of File Class object
+		 * For windows --> C:/Users/rahul/AppData/Roaming/npm/node-modules/appium/build/lib/main.js
+		 * For mac --> /user/local/lib/node-modules/appium/build/lib/main.js
+		 * Also you have to tell which IP Address and Port you have to start 
+		 */
+		AppiumDriverLocalService service = new AppiumServiceBuilder().
+				withAppiumJS(new File("location where main.js file present"))
+				.withIPAddress("127.0.0.1").usingPort(4723)
+				.build();
+		service.start();
+		//What kind of driver you are using -> create object of the driver
+		//AndroidDriver driver = new AndroidDriver(); -> Expects 2 arguments
+		// 1. AppiumDriverLocalService, 2. Capabilities
+		//AppiumDriverLocalService -> ie Url of appium server after starting it -> wrapped in URL class
+		//Capabilities -> In what OS you want to execute-> android,ios etc, Version number, device name, info about your app
+		//capabilities, to make environment ready
+		//UiAutomatorOptions -> This class will be used for capabilities
+		UiAutomator2Options options = new UiAutomator2Options();
+		options.setDeviceName("RohitPhone");
+		options.setApp("//users//rohit//Appium//src//test//java//resources//ApiDemos-debug.apk");   //Set app location here
+		AndroidDriver driver = new AndroidDriver(new URL("http://127.0.0.1:4723"),options);
+		driver.quit();
+		//Actual automation code from here
+	}
+
+}
+
+--Introduction to Appium Inspector to identify the elements on the apps:
+  ---------------------------------------------------------------------
+  Open Appium Demos app --> Click on Preference --> Wifi Setting
+  -Locator --> xpath, id, accessibilityId, className, androidUiAutomator
+  -Using appium inspector we can get properties for each and every item on any android app.
+  Go to https://github.com/appium/appium-inspector --> Go to Releases --> download .exe file for windows, .dmg file for mac --> Install it
+  -Open appium inspector -->We need to do some configuration in here before open it in inspecting mode
+  We have to tell, on which mobile phone we want to inspect, and which app you want to inspect (Configuration like appium code)
+Example:
+{
+  "platformName": "Android",
+  "appium:automationName": "UIAutomator2",
+  "appium:deviceName": "Android Emulator", 
+  "appium:eventTimings": true,                                   //optional
+  "appium:app": "/Users/rohit-mac/Downloads/General-Store.apk"
+}
+
+  -Go to Desired Capabilities --> Add properties below one by one
+| Key                   | Value                   |
+| --------------------- | ----------------------- |
+| platformName          | Android                 |
+| appium:automationName | UIAutomator2            |
+| appium:deviceName     | Android Emulator        |
+| appium:eventTimings   | true                    |
+| appium:app            | /Users/rohit-mac/...apk |
+  
+  -Start appium server in terminal--> %appium
+  -Start session in Appium Inspector --> Now app will be loaded, click on preference --> We will get all the properties of selected elements
+Note:
+  driver.findElement(By.  )  --> Generic for Web and Mobile commonly
+  driver.findElement(AppiumBy. ) --> For AccessibilityId, androidUiAutomator etc
+  example: driver.findElement(AppiumBy.accessibilityId("Preference")).click();
+  
+--Creating Base Class with Util Methods and extend it to child Appium Tests:
+  -------------------------------------------------------------------------
+package com.alchemist;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.options.UiAutomator2Options;
+import io.appium.java_client.service.local.AppiumDriverLocalService;
+import io.appium.java_client.service.local.AppiumServiceBuilder;
+
+public class BaseTest {
+
+    public AndroidDriver driver;
+    public AppiumDriverLocalService service;
+
+    public void configureApp() throws MalformedURLException {
+
+        service = new AppiumServiceBuilder()
+                .withIPAddress("127.0.0.1")
+                .usingPort(4723)
+                .build();
+
+        service.start();
+        
+        UiAutomator2Options options = new UiAutomator2Options();
+		options.setDeviceName("RohitPhone");
+		options.setApp("//users//rohit//Appium//src//test//java//resources//ApiDemos-debug.apk");   //Set app location here
+		AndroidDriver driver = new AndroidDriver(new URL("http://127.0.0.1:4723"),options);
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+    }
+    
+    public void tearDown() {
+    	driver.quit();
+    	service.stop();
+    }
+}
+-----
+package com.alchemist;
+
+import java.net.MalformedURLException;
+
+import org.testng.annotations.Test;
+
+import io.appium.java_client.AppiumBy;
+
+public class AppiumBasic extends BaseTest{
+	@Test
+	public void wifiSettingName() throws MalformedURLException {
+		configureApp();
+		driver.findElement(AppiumBy.accessibilityId("Preference")).click();
+		tearDown();
+	}
+}
+
+Note: It is better to use @BeforeClass and @AfterClass in the BaseTest
+
+public class AppiumBasic extends BaseTest{
+	@Test
+	public void wifiSettingName() throws MalformedURLException {
+		//configureApp();  --> Used @BeforeClass annotation
+		driver.findElement(AppiumBy.accessibilityId("Preference")).click();
+		//tearDown();  --> --> Used @AfterClass annotation
+	}
+}
+
+Note: -Appium Server not start programmatically --> Node version minimum should be 16
+      check -> node -v, appium -v (should be 2)
+	  Appium java client version should be greater than 8.0.0
+	  -ANDROID_HOME version not set error in MAC 
+	  while running: Neither ANDROID_HOME nor ANDROID_SDK_ROOT environment exported ie eclipse not able to identify ANDROID_HOME
+	  To troubleshoot it --> Right click on Test --> Run As --> Run Configuration --> TestNg -> AppiumBasic --> Go to Environment tab --> Add following key-value
+	  Variable:Value == ANDROID_HOME:/users/rohit/Library/Android/sdk
+	  Apply and Run
+	  
+--In depth understanding of Android native app automation with Appium:
+  -------------------------------------------------------------------
+  Click on preference ->3 Preference dependencies -> Wifi(Select checkbox) -> Wifi Setting
+  Note: Appium inspector will work when appium server is on
+        In selected element window --> we can see options like tap, sendkeys etc
+		We can use 'refresh page and take screenshot' function, it will replicate same page in inspector, which is open in emulator in android studio
+		Also here back option is available
+
+--How to Handle mobile popups and return list of matching elements in android app:
+  -------------------------------------------------------------------------------
+  Note: When you come to 'Call to tap failed' issues in appium inspector --> Just restart session again
+        Click on 'Refresh source and screenshot' in appium inspector
+		
+public class AppiumBasic extends BaseTest{
+	@Test
+	public void wifiSettingName() throws MalformedURLException {
+		driver.findElement(AppiumBy.accessibilityId("Preference")).click();
+		//tagName[@attribute='value']
+		driver.findElement(By.xpath("//android.widget.TextView[@content-desc='3.Preference dependencies']")).click();
+		driver.findElement(By.id("android:id/checkbox")).click();
+		driver.findElement(By.xpath("(//android.widget.Relative-Layout)[2]")).click();
+		String alertTitle = driver.findElement(By.id("android:id/alertTitile")).getText();
+		Assert.assertEquals(alertTitle, "Wifi settings");
+		driver.findElement(By.id("android:id/edit")).sendKeys("Rahul Wifi");
+		//Click on Ok
+		//driver.findElements(By.className("android.widget.Button")).get(1).click();
+		driver.findElements(AppiumBy.className("android.widget.Button")).get(1).click();
+		
+	}
+}
+
+Note: Instead of By, use AppiumBy for className (By sometime causes issue)
+      Prefer AccessibilityId
+	  Anything with By treated as WebElement
+	  id can be resource_id (in most cases it is same)
+	  rather than big xpath -> You can go with tagName for xpath
+	  
+--Advanced Gestures Automation with key Events: 
+  --------------------------------------------
+ -Introduction to Appium mobile Gestures and how it works: 
+  -------------------------------------------------------
+   https://github.com/clarabez/appium-1/blob/master/docs/en/writing-running-appium/android/android-mobile-gestures.md
+  -Long press, drag and drop, scrolling, swipping, pinch
+  -Go to API Demos --> Views --> Expandable Lists --> 1 Custom Adapter --> People Names (If we long hold -> Sample menu opens up)
+  -create new Class LongPressGestures method in LongPress class
+  -For long Click -> Inject JavaScript with executeScript("Send JS here") -->Takes 2 arguments
+                     1 -> argument as eventTimings
+					 2 -> takes map of key-value pairs ie where to perform -> map expects key as elementId, value as where you have to apply that long click
+					 Also we can pass co-ordinates in case if we have to click on blank space, ie when no element is
+					 also duration --> How many seconds hold (as key value)
+					 Cast WebElement to RemoteWebElement -> As it coulde be WebElement or Mobile Element
+					 
+package com.alchemist;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
+import com.google.common.collect.ImmutableMap;
+import io.appium.java_client.AppiumBy;
+
+public class LongPress extends BaseTest{
+	public void longPressGesture() throws InterruptedException {
+		driver.findElement(AppiumBy.accessibilityId("views")).click();
+		driver.findElement(By.xpath("//android.widget.TextView[@text='Expandable Lists']")).click();
+		driver.findElement(AppiumBy.accessibilityId("1. Custom Adapter")).click();
+		WebElement ele = driver.findElement(By.xpath("//android.widget.TextView[@text='People Names']"));
+		((JavascriptExecutor) driver).executeScript(
+			    "mobile: longClickGesture",
+			    ImmutableMap.of(
+			        "elementId", ((RemoteWebElement) ele).getId(),
+			        "duration", 2000
+			    )
+			);
+		Thread.sleep(2000);
+	}
+}
+
+--Modified Code: Add longPressAction() in BaseTest class
+  ------------
+
+public class BaseTest {
+
+	public AndroidDriver driver;
+	public AppiumDriverLocalService service;
+
+	@BeforeClass
+	public void configureApp() throws MalformedURLException {
+
+		service = new AppiumServiceBuilder().withIPAddress("127.0.0.1").usingPort(4723).build();
+
+		service.start();
+
+		UiAutomator2Options options = new UiAutomator2Options();
+		options.setDeviceName("RohitPhone");
+		options.setApp("//users//rohit//Appium//src//test//java//resources//ApiDemos-debug.apk"); // Set app location
+																									// here
+		AndroidDriver driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+	}
+
+	public void longPressAction(WebElement ele) {
+		((JavascriptExecutor) driver).executeScript("mobile: longClickGesture",
+				ImmutableMap.of("elementId", ((RemoteWebElement) ele).getId(), "duration", 2000));
+	}
+
+	@AfterClass
+	public void tearDown() {
+		driver.quit();
+		service.stop();
+	}
+}
+----
+public class LongPress extends BaseTest{
+	public void longPressGesture() throws InterruptedException {
+		driver.findElement(AppiumBy.accessibilityId("views")).click();
+		driver.findElement(By.xpath("//android.widget.TextView[@text='Expandable Lists']")).click();
+		driver.findElement(AppiumBy.accessibilityId("1. Custom Adapter")).click();
+		WebElement ele = driver.findElement(By.xpath("//android.widget.TextView[@text='People Names']"));
+		longPressAction(ele);
+		String menuText = driver.findElement(By.id("android:id/title")).getText();
+		Assert.assertEquals(menuText, "Samplemenu");
+		Assert.assertTrue(driver.findElement(By.id("android:/id/title")).isDisplayed());
+		Thread.sleep(2000);
+	}
+}
+
+--How to perform Scroll Gestures:
+  ------------------------------
+  Click on views -> Here scroll down until webview text
+  Create ScrollDemo.java
+  -androidUIAutomator -> Using Google engine to find element -> In google enginge -> UiScrollable class is their 
+                         create object and inside it give selector to which you scroll. For giving selector, create object of 
+						 class UiSelector() inside UiScrollable object
+						 In UiScrollable class their is method scrollIntoView(text(\"webview\"))
+						 
+package com.alchemist;
+
+import org.openqa.selenium.JavascriptExecutor;
+import org.testng.annotations.Test;
+
+import com.google.common.collect.ImmutableMap;
+
+import io.appium.java_client.AppiumBy;
+
+public class ScrollDemo extends BaseTest {
+
+    @Test
+    public void scrollTest() {
+
+        // Step 1: Open Views
+        driver.findElement(AppiumBy.accessibilityId("Views")).click();
+
+        // Step 2: Scroll to WebView and click
+        driver.findElement(
+            AppiumBy.androidUIAutomator(
+                "new UiScrollable(new UiSelector().scrollable(true))" +
+                ".scrollIntoView(new UiSelector().text(\"WebView\"))"
+            )
+        ).click();
+
+        // Step 3: Scroll using gesture (dynamic scrolling)
+        boolean canScrollMore = (Boolean) ((JavascriptExecutor) driver).executeScript(
+            "mobile: scrollGesture",
+            ImmutableMap.of(
+                "left", 100,
+                "top", 100,
+                "width", 800,
+                "height", 1200,
+                "direction", "down",
+                "percent", 0.75
+            )
+        );
+
+        System.out.println("Can scroll more: " + canScrollMore);
+    }
+}
+Note: If you want to scroll until end --> Then write do while loop
+
+-We can add it in BaseTest
+package com.alchemist;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
+
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+
+import com.google.common.collect.ImmutableMap;
+
+import io.appium.java_client.AppiumBy;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.options.UiAutomator2Options;
+import io.appium.java_client.service.local.AppiumDriverLocalService;
+import io.appium.java_client.service.local.AppiumServiceBuilder;
+
+public class BaseTest {
+
+	public AndroidDriver driver;
+	public AppiumDriverLocalService service;
+
+	@BeforeClass
+	public void configureApp() throws MalformedURLException {
+
+		service = new AppiumServiceBuilder().withIPAddress("127.0.0.1").usingPort(4723).build();
+
+		service.start();
+
+		UiAutomator2Options options = new UiAutomator2Options();
+		options.setDeviceName("RohitPhone");
+		options.setApp("//users//rohit//Appium//src//test//java//resources//ApiDemos-debug.apk"); // Set app location
+																									// here
+		AndroidDriver driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+	}
+
+	public void longPressAction(WebElement ele) {
+		((JavascriptExecutor) driver).executeScript("mobile: longClickGesture",
+				ImmutableMap.of("elementId", ((RemoteWebElement) ele).getId(), "duration", 2000));
+	}
+	
+	public void scrollToText(String text) {
+	    driver.findElement(
+	        AppiumBy.androidUIAutomator(
+	            "new UiScrollable(new UiSelector().scrollable(true))" +
+	            ".scrollIntoView(new UiSelector().text(\"" + text + "\"))"
+	        )
+	    );
+	}
+	
+	public void scrollToEndAction() {
+
+	    boolean canScrollMore;
+
+	    do {
+	        canScrollMore = (Boolean) ((JavascriptExecutor) driver).executeScript(
+	            "mobile: scrollGesture",
+	            ImmutableMap.of(
+	                "left", 100,
+	                "top", 100,
+	                "width", 800,
+	                "height", 1200,
+	                "direction", "down",
+	                "percent", 0.75
+	            )
+	        );
+	    } while (canScrollMore);
+	}
+
+	@AfterClass
+	public void tearDown() {
+		driver.quit();
+		service.stop();
+	}
+}
+Note: For swipping,Scrolling -> Required direction but not for longPress
+
+--How to Automate swipe functionality using Appium on Android:
+  -----------------------------------------------------------
+  -> Views -> Gallary -> Photos -> Swipe to left side (focusable:true is the attribute , check for it in appium inspector)
+  -Create SwipeDemo class
+  -Swipe in app, then 'refresh source and Screenshot' we can see focusable atttribute in the appium inspector
+  -For Swipping if you know the element then, you need not to give co-ordinates
+  -Direction is mandatory, % is mandatory(0.1 to 1), remaining are optional
+  
+package com.alchemist;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.google.common.collect.ImmutableMap;
+
+import io.appium.java_client.AppiumBy;
+
+public class SwipeDemo extends BaseTest{
+	@Test
+	public void swipeTest() {
+		driver.findElement(AppiumBy.accessibilityId("Views")).click();
+		driver.findElement(AppiumBy.accessibilityId("Gallary")).click();
+		WebElement firstImage = driver.findElement(By.xpath("//android.widget.TextView[@text='1.Photos']"));
+		firstImage.click();
+		Assert.assertTrue(
+			    Boolean.parseBoolean(
+			        driver.findElement(By.xpath("(//android.widget.ImageView)[1]"))
+			              .getAttribute("focusable")
+			    )
+			);
+		//Swipe
+		((JavascriptExecutor) driver).executeScript(
+			    "mobile: swipeGesture",
+			    ImmutableMap.of(
+			        "elementId", ((RemoteWebElement) firstImage).getId(),
+			        "direction", "left",
+			        "percent", 0.75
+			    )
+			);
+		//As focus is changed -> focusable attribute should be false
+		Assert.assertFalse(
+			    Boolean.parseBoolean(
+			        driver.findElement(By.xpath("(//android.widget.ImageView)[1]"))
+			              .getAttribute("focusable")
+			    )
+			);
+	}
+}
+
+-Modify BaseTest:
+package com.alchemist;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
+
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+
+import com.google.common.collect.ImmutableMap;
+
+import io.appium.java_client.AppiumBy;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.options.UiAutomator2Options;
+import io.appium.java_client.service.local.AppiumDriverLocalService;
+import io.appium.java_client.service.local.AppiumServiceBuilder;
+
+public class BaseTest {
+
+	public AndroidDriver driver;
+	public AppiumDriverLocalService service;
+
+	@BeforeClass
+	public void configureApp() throws MalformedURLException {
+
+		service = new AppiumServiceBuilder().withIPAddress("127.0.0.1").usingPort(4723).build();
+
+		service.start();
+
+		UiAutomator2Options options = new UiAutomator2Options();
+		options.setDeviceName("RohitPhone");
+		options.setApp("//users//rohit//Appium//src//test//java//resources//ApiDemos-debug.apk"); // Set app location
+																									// here
+		AndroidDriver driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+	}
+
+	public void longPressAction(WebElement ele) {
+		((JavascriptExecutor) driver).executeScript("mobile: longClickGesture",
+				ImmutableMap.of("elementId", ((RemoteWebElement) ele).getId(), "duration", 2000));
+	}
+
+	public void scrollToText(String text) {
+		driver.findElement(AppiumBy.androidUIAutomator("new UiScrollable(new UiSelector().scrollable(true))"
+				+ ".scrollIntoView(new UiSelector().text(\"" + text + "\"))"));
+	}
+
+	public void scrollToEndAction() {
+
+		boolean canScrollMore;
+
+		do {
+			canScrollMore = (Boolean) ((JavascriptExecutor) driver).executeScript("mobile: scrollGesture", ImmutableMap
+					.of("left", 100, "top", 100, "width", 800, "height", 1200, "direction", "down", "percent", 0.75));
+		} while (canScrollMore);
+	}
+
+	public void swipeAction(WebElement ele, String direction) {
+		((JavascriptExecutor) driver).executeScript("mobile: swipeGesture", ImmutableMap.of("elementId",
+				((RemoteWebElement) ele).getId(), "direction", direction, "percent", 0.75));
+	}
+
+	@AfterClass
+	public void tearDown() {
+		driver.quit();
+		service.stop();
+	}
+}
+
+--Appium Miscellaneous topics for Android Automation:
+  --------------------------------------------------
+  Views -> Drag and Drop
+  -In Android-mobile-gesture documentation -> dragGesture available
+  -To get co-ordinates -> Appium Inspector have swipe by co-ordinates, Tap by Co-ordinates
+  -As we are going to drop in the middle --> Get co-ordinates from centre of the circle.
+
+  package com.alchemist;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.google.common.collect.ImmutableMap;
+
+import io.appium.java_client.AppiumBy;
+
+public class DragDropDemo extends BaseTest {
+
+    @Test
+    public void dragAndDropTest() {
+
+        driver.findElement(AppiumBy.accessibilityId("Views")).click();
+        driver.findElement(AppiumBy.accessibilityId("Drag and Drop")).click();
+
+        WebElement source = driver.findElement(By.id("io.appium.android.apis:id/drag_dot_1"));
+
+        ((JavascriptExecutor) driver).executeScript(
+                "mobile: dragGesture",
+                ImmutableMap.of(
+                        "elementId", ((RemoteWebElement) source).getId(),
+                        "endX", 619,
+                        "endY", 560
+                )
+        );
+
+        String result = driver.findElement(
+                By.id("io.appium.android.apis:id/drag_result_text")
+        ).getText();
+
+        Assert.assertEquals(result, "Dropped");
+    }
+}
+
+--Automate Activities like Orientation and KeyEvents using Appium:
+  ---------------------------------------------------------------
+echo "# appium-java" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/rohitlavate97/appium-java.git
+git push -u origin main
+
+
