@@ -833,3 +833,17 @@ public class ActivityTest extends BaseTest{
     driver.findElements(AppiumBy.className("android.widget.Button")).get(1).click();
   }
 }
+
+--Ecommerce App Automation:
+  ------------------------
+  -> https://rahulshettyacademy.com/#/index -> Practise project -> mobile automation -> Hybrid Android App
+  ->General Store App -> Open emulator 
+    To install app -> Go to sdk/platform-tool (If already path is set, need not to go)
+    Go to Terminal
+    > adb install /General-store.apk (path of file)
+
+ -Test Case in filling the form details for shopping:
+  --------------------------------------------------
+  -paste apk file in resources (General-store.apk)
+  -create class Ecommerce_tc_1
+  Make Changes in BaseTest --> options.setApp("apk File path");
