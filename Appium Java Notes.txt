@@ -749,12 +749,87 @@ public class DragDropDemo extends BaseTest {
 
 --Automate Activities like Orientation and KeyEvents using Appium:
   ---------------------------------------------------------------
-echo "# appium-java" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/rohitlavate97/appium-java.git
-git push -u origin main
+  -With the use of Device Rotation Class -> Test Functionality in Landscape mode etc
+  Create MiscellaneousAppiumActions.java
 
+package com.alchemist;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.DeviceRotation;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import io.appium.java_client.AppiumBy;
+import io.appium.java_client.android.nativekey.AndroidKey;
+import io.appium.java_client.android.nativekey.KeyEvent;
+
+public class MiscellaneousAppiumActions extends BaseTest{
+  @Test
+  public void miscellaneousActions() {
+    driver.findElement(AppiumBy.accessibilityId("Preference")).click();
+    driver.findElement(By.xpath("//android.widget.TextView[@content-desc='3.Preference dependencies']")).click();
+    driver.findElement(By.id("android:id/checkbox")).click();
+    DeviceRotation landscape = new DeviceRotation(0,0,90);
+    driver.rotate(landscape);
+    driver.findElement(By.xpath("(//android.widget.RelativeLayout)[2]")).click();
+    String alertTitle = driver.findElement(By.id("android:id/alertTitile")).getText();
+    Assert.assertEquals(alertTitle, "Wifi settings");
+    //Copy paste -> Copy from clipboard
+    driver.setClipboardText("Rahul wifi");
+    driver.findElement(By.id("android:id/edit")).sendKeys(driver.getClipboardText());
+    driver.pressKey(new KeyEvent(AndroidKey.ENTER));
+    driver.findElements(AppiumBy.className("android.widget.Button")).get(1).click();
+    driver.pressKey(new KeyEvent(AndroidKey.BACK));
+    driver.pressKey(new KeyEvent(AndroidKey.HOME));
+  }
+}
+
+--How to open app using app package and Activity name using appium:
+  ----------------------------------------------------------------
+  -If we want to open any page -> Instead of going step by step navigation
+  -Using app package(Global name for that project) and App activity 
+  -Appium exposes a Activity class
+  - First open page on which you want to automate, open it on emulator or device.
+  %adb devices  -->to know my package name and activity we want to open 
+  For windows --> adb shell dumpsys window | find "mCurrentFocus"
+  For MAC/Linux --> adb shell dumpsys window | grep -E 'mCurrentFocus'
+  After running above command -> we get (package/activity)
+  -Pass activity object to startActivity() method
+  Note: In Appium 2, startActivity is executed using mobile commands instead of deprecated
+        https://github.com/appium/appium-uiautomator2-driver#mobile-startactivity
+        Use mobile:startActivity --> intent: package/activity (provided as key value)
+
+package com.alchemist;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.google.common.collect.ImmutableMap;
+
+import io.appium.java_client.AppiumBy;
+import io.appium.java_client.android.Activity;
+
+public class ActivityTest extends BaseTest{
+  @Test
+  public void activityLaunch() {
+    Activity activity = new Activity("io.appium.android.apis",
+        "io.appium.android.apis.preference.PreferenceDependencies");
+    //driver.startActivity(activity); 
+    //n Appium 2, startActivity is executed using mobile commands instead of deprecated
+      ((JavascriptExecutor) driver).executeScript(
+              "mobile: startActivity",
+              ImmutableMap.of(
+                  "appPackage", "io.appium.android.apis",
+                  "appActivity", "io.appium.android.apis.preference.PreferenceDependencies"
+              )
+          );
+      driver.findElement(By.id("android:id/checkbox")).click();
+    driver.findElement(By.xpath("(//android.widget.Relative-Layout)[2]")).click();
+    String alertTitle = driver.findElement(By.id("android:id/alertTitile")).getText();
+    Assert.assertEquals(alertTitle, "Wifi settings");
+    driver.findElement(By.id("android:id/edit")).sendKeys("Rahul Wifi");
+    driver.findElements(AppiumBy.className("android.widget.Button")).get(1).click();
+  }
+}
