@@ -1,1 +1,73 @@
+# IDE and Editor Files
 /.metadata/
+.classpath
+.project
+.settings/
+*.swp
+*.swo
+*~
+.DS_Store
+.idea/
+*.iml
+*.iws
+*.ipr
+*.sublime-project
+*.sublime-workspace
+.vscode/
+*.code-workspace
+
+# Maven
+/target/
+/pom.xml.tag
+/pom.xml.releaseBackup
+/pom.xml.versionsBackup
+/pom.xml.next
+/release.properties
+/dependency-reduced-pom.xml
+/.flattened-pom.xml
+
+# Java
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.log
+*.ctxt
+.mtj.tmp/
+*.jks
+*.keystore
+
+# Gradle
+.gradle/
+/build/
+gradle-app.setting
+gradlew
+gradlew.bat
+
+# Build files
+bin/
+build/
+dist/
+*.o
+*.a
+*.so
+
+# Test Coverage
+/coverage/
+/reports/
+jacoco.exec
+*.exec
+
+# OS
+Thumbs.db
+*.bak
+*.tmp
+
+# Local environment
+.env
+.env.local
+*.properties.local
