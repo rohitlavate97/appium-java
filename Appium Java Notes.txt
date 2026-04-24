@@ -847,3 +847,52 @@ public class ActivityTest extends BaseTest{
   -paste apk file in resources (General-store.apk)
   -create class Ecommerce_tc_1
   Make Changes in BaseTest --> options.setApp("apk File path");
+  -Also in appium inspector -> set apk path correctly
+                               Start session (also open in emulator)
+							   once click on 'Refresh source and Screenshot'
+  -To hideKeyboard if it is covering functionality -> Use hideKeyboard() method
+  -Verifying toast messages for error validations:
+   ----------------------------------------------
+   -If we don't enter name -> please enter your name
+   Taking Screenshot in appium is difficult, replicate in appium inspector tap on Let's shopping
+   -When trying to inspect toast message -> Entire page highlightes(We can't grab locator for specific)
+   -To message have android.widget.Toast tag, multiple toast messates can be their so use indexing -> getText() will not work on special widget
+   As every element has attribute, it has name attribute which contains error message
+   
+package com.alchemist.ecom;
+
+import com.alchemist.BaseTest;
+
+import io.appium.java_client.AppiumBy;
+
+import org.testng.annotations.Test;
+import org.openqa.selenium.By;
+import org.testng.Assert;
+
+public class Ecommerce_tc1 extends BaseTest{
+	@Test
+	public void fillForm() throws InterruptedException {
+		driver.findElement(By.id("com.androidsample.generalStore:id/nameField")).sendKeys("Rahul Shetty");
+		driver.hideKeyboard();
+		driver.findElement(By.xpath("//android.widget.Radiobutton[@text='Female']")).click();
+		driver.findElement(By.id("android:id/text1")).click();
+		driver.findElement(
+			    AppiumBy.androidUIAutomator(
+			        "new UiScrollable(new UiSelector().scrollable(true))" +
+			        ".scrollIntoView(new UiSelector().text(\"Argentina\"))"
+			    )
+			);
+		driver.findElement(By.xpath("//android.widget.TextView[@text='Argentina']")).click();
+		driver.findElement(By.id("com.androidsample.generalstore:id/btnletsshop")).click();
+		//Thread.sleep(2000);
+		String toastMessage = driver.findElement(By.xpath("(//android.widget.Toast)[1]")).getAttribute("name");
+		Assert.assertEquals(toastMessage, "Please Enter your name");
+	}
+}
+
+  -TestCase - Scrolling in product list example with Appium Android Scroll:
+   -----------------------------------------------------------------------
+   -Scroll to Jordan 6 and click on it
+   -Quit and Start inspector again
+   -Add to Cart have same attribute for each product, to uniquely identify. As it is scrolling, we might not be able to apply indexing
+   -When match Jordan 6 rings -> We capture the index of that product, with that index we go ahead and add to cart
