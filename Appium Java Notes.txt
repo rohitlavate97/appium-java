@@ -896,3 +896,50 @@ public class Ecommerce_tc1 extends BaseTest{
    -Quit and Start inspector again
    -Add to Cart have same attribute for each product, to uniquely identify. As it is scrolling, we might not be able to apply indexing
    -When match Jordan 6 rings -> We capture the index of that product, with that index we go ahead and add to cart
+   
+	@Test
+	public void scrollToProduct() throws InterruptedException {
+		driver.findElement(By.id("com.androidsample.generalStore:id/nameField")).sendKeys("Rahul Shetty");
+		driver.hideKeyboard();
+		driver.findElement(By.xpath("//android.widget.Radiobutton[@text='Female']")).click();
+		driver.findElement(By.id("android:id/text1")).click();
+		driver.findElement(
+			    AppiumBy.androidUIAutomator(
+			        "new UiScrollable(new UiSelector().scrollable(true))" +
+			        ".scrollIntoView(new UiSelector().text(\"Argentina\"))"
+			    )
+			);
+		driver.findElement(By.xpath("//android.widget.TextView[@text='Argentina']")).click();
+		driver.findElement(By.id("com.androidsample.generalstore:id/btnLetsshop")).click();
+		driver.findElement(
+			    AppiumBy.androidUIAutomator(
+			        "new UiScrollable(new UiSelector().scrollable(true))" +
+			        ".scrollIntoView(new UiSelector().text(\"Jordan 6 Rings\"))"
+			    )
+			);
+		int productCount = driver.findElements(By.id("com.android.sample.generalstore:id/productName")).size();
+		for(int i=0;i<=productCount;i++) {
+			String productName = driver.findElements(By.id("com.android.sample.generalstore:id/productName")).get(i).getText();
+			if(productName.equalsIgnoreCase("Jordan 6 Rings")) {
+				driver.findElements(By.id("com.androidsample.generalstore:id/productAddCart")).get(i).click();
+			}
+		}
+		driver.findElement(By.id("com.androidsample.generalstore:id/appbar_bt_cart")).click();
+	}
+	
+  -TestCase-Dynamically selecting product by scanning list based on text:
+   ---------------------------------------------------------------------
+		driver.findElement(By.id("com.androidsample.generalstore:id/appbar_bt_cart")).click();
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+		wait.until(ExpectedConditions.attributeContains(By.id("com.androidsample.generalstore:id/toolbar_title"), "text", "cart"));
+		String lastPageProduct = driver.findElement(By.id("com.androidsample.generalstore:id/productName")).getText();
+		Assert.assertEquals(lastPageProduct, "Jordan 6 Rings");
+		
+    Note: -It might happen that due to this id, (in lastPageProduct line) script may fail as it matches. Product page has same id for this product ans this code may execute
+	      before switching to cart  page as it takes time(Slowness) when navigation may not be completed. So do one thing before Assertion check title of the page is cart
+		  -Use 'Selenium-support' from maven repo -> Add in pom.xml -> For WebDriverWait
+		  
+  -Testcase - Validating total amount generated functionality:
+   ----------------------------------------------------------
+   -Add 2 items in the cart
+   -But problem is that 'ADD TO CART' have same text, which may confuses appium. so we wil use findElements and index it.
