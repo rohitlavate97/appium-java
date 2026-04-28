@@ -943,3 +943,56 @@ public class Ecommerce_tc1 extends BaseTest{
    ----------------------------------------------------------
    -Add 2 items in the cart
    -But problem is that 'ADD TO CART' have same text, which may confuses appium. so we wil use findElements and index it.
+   -Then long press on plese read our terms of conditions and then close popup
+   Note: Long press option not available in appium inspector
+
+  public void addPrice() throws InterruptedException {
+    driver.findElement(By.id("com.androidsample.generalStore:id/nameField")).sendKeys("Rahul Shetty");
+    driver.hideKeyboard();
+    driver.findElement(By.xpath("//android.widget.Radiobutton[@text='Female']")).click();
+    driver.findElement(By.id("android:id/text1")).click();
+    driver.findElement(AppiumBy.androidUIAutomator("new UiScrollable(new UiSelector().scrollable(true))"
+        + ".scrollIntoView(new UiSelector().text(\"Argentina\"))"));
+    driver.findElement(By.xpath("//android.widget.TextView[@text='Argentina']")).click();
+    driver.findElement(By.id("com.androidsample.generalstore:id/btnLetsshop")).click();
+    // Once code below execute, it changes to ADDED TO CART --> Now again we give
+    // index 1 ie get(1).click()
+    // but we have only 1 element now, so script might fail
+    driver.findElements(By.xpath("//android.widget.Textview[@text='ADD TO CART']")).get(0).click();
+    // or We can apply index in driver.findElement()
+    driver.findElements(By.xpath("//android.widget.Textview[@text='ADD TO CART']")).get(0).click();
+    driver.findElement(By.id("com.androidsample.generalstore:id/appbar_btn_cart")).click();
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+    wait.until(ExpectedConditions.attributeContains(By.id("com.androidsample.generalstore:id/toolbar_title"),
+        "text", "cart"));
+    //Thread.sleep(2000);
+    List<WebElement> productPrices = driver.findElements(By.id("com.androidsample.generalstore:id/productPrice"));
+    int count = productPrices.size();
+    double sum = 0;
+    for(int i =0;i<count;i++) {
+     String amountString = productPrices.get(i).getText();
+     Double price = Double.parseDouble(amountString.substring(1));
+     sum = sum + price;
+    }
+    String displaySum = driver.findElement(By.id("com.androidsample.generalstore:id/totalAmountLbl")).getText();
+    Double displayFormattedSum = getFormattedAmount(displaySum);
+    Assert.assertEquals(sum, displayFormattedSum);
+    
+    WebElement ele = driver.findElement(By.id("com.androidsample.generalstore:id/termsButton"));
+    longPressAction(ele);
+    driver.findElement(By.id("android:id/button1")).click();
+    driver.findElement(AppiumBy.className("android.widget.Checkbox")).click();
+    driver.findElement(By.id("com.androidsample.generalstore:id/btnProceed")).click();
+    Thread.sleep(2000);
+  }
+
+-Once we submit it will take to browser. Browser is rendering in app. That it is hybrid app
+
+
+-Note: Add one method in BaseTest.java
+  public Double getFormattedAmount(String amount) {
+    Double price = Double.parseDouble(amount.substring(1));
+    return price;
+  }
+
+
