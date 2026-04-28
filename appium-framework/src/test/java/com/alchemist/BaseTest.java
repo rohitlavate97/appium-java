@@ -32,6 +32,7 @@ public class BaseTest {
 		service.start();
 
 		UiAutomator2Options options = new UiAutomator2Options();
+		options.setChromedriverExecutable("//users//rahulshetty//documents//chromedriver");
 		options.setDeviceName("RohitPhone");
 		options.setApp("//users//rohit//Appium//src//test//java//resources//ApiDemos-debug.apk"); // Set app location
 																									// here
