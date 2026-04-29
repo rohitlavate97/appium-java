@@ -1059,3 +1059,79 @@ public void switchToWebView() throws InterruptedException {
 
 --Mobile chrome browser automation with Appium:
   --------------------------------------------
+  -Desired capability to run Appium tests on mobile browser:
+   --------------------------------------------------------
+   -Create MobileBrowserTest class & BrowserBaseTest
+   -Technically we are automating mobile app only, UiAutomator allow android device globally.
+   
+public class BrowserBaseTest {
+	public AndroidDriver driver;
+	public AppiumDriverLocalService service;
+	
+	@BeforeClass
+	public void configureAppium() throws MalformedURLException {
+		service = new AppiumServiceBuilder().withIPAddress("127.0.0.1").usingPort(4723).build();
+
+		service.start();
+
+		UiAutomator2Options options = new UiAutomator2Options();
+		options.setChromedriverExecutable("//users//rahulshetty//documents//chromedriver");
+		options.setDeviceName("RohitPhone");
+		options.setApp("//users//rohit//Appium//src//test//java//resources//ApiDemos-debug.apk"); // Set app location
+																									// here
+		AndroidDriver driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+	}
+	
+	@AfterClass
+	public void tearDown() {
+		driver.quit();
+		service.stop();
+	}
+}
+
+--How to scroll and put assertions on browser tests with appium:
+  -------------------------------------------------------------
+  -Appium inspector will only work for Native app, not on browser
+  Toggle browser to mobile mode and then inspect.
+  -click on products, scroll down to devops and getText
+  
+public class MobileBrowserTest extends BrowserBaseTest{
+	@Test
+	public void browserTest() {
+		driver.get("http://google.com");
+		System.out.println(driver.getTitle());
+		driver.findElement(By.name("q")).sendKeys("rahul shetty academy");
+		driver.findElement(By.name("q")).sendKeys(Keys.ENTER);
+	}
+	
+	@Test
+	public void mobileBrowserTest() {
+		driver.get("https://rahulshettyacademy.com/angularAppdemo/");
+		driver.findElement(By.xpath("//span[@class='navbar-toggler-icon']")).click();
+		driver.findElement(By.cssSelector("a[routerlink*='products']")).click();
+		((JavascriptExecutor)driver).executeScript("window.scrollBy(0,1000)", "");
+		String text = driver.findElement(By.cssSelector("a[href*='products/3']")).getText();
+		Assert.assertEquals(text, "Devops");
+	}
+}
+
+--Framework: Code design patterns
+  ---------
+  -Understand the importance of framework design 
+   ---------------------------------------------
+   create maven project --> Group id -> com.alchemist
+                            ArtifactId -> AppiumFrameworkDesign
+							create BaseTest inside src/test/java
+							Add dependencies in pom.xml --> java-client,testng,selenium-support
+							
+  -Introduction to page object factors and design implementation idea:
+   ------------------------------------------------------------------
+   src/main/java --> page object file, util folders, reusable things for better segregation
+                     eg -> com.alchemist.pageObjects.android -> For ios we will add another package
+   Seperation of locator and actions
+   -@AndroidFindBy() -> You want to find the element, you want to find it in ios app or web browser using selenium or in android appp, that info we have to give
+   eg: @AndroidFindBy(id="com.androidsample.generalstore:id/nameField")
+       private WebElement nameField;
+	This is new way of defining locator in page factory design patterns
+	
