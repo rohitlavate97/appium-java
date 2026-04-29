@@ -1135,3 +1135,61 @@ public class MobileBrowserTest extends BrowserBaseTest{
        private WebElement nameField;
 	This is new way of defining locator in page factory design patterns
 	
+Note:-driver is coming here in Test from BaseTest, from Test we have to send driver to Formpage, then driver will get activated -> For that use constructor,
+      which expect AndroidDriver
+	  public FormPage(AndroidDriver driver){}
+	 -In Test
+	  FormPage formPage = new FormPage(driver);   //ie sending driver to Formpage
+	  Whenever create object, constructor executes automatically
+	 -FormPage.java 
+	  AndroidDriver driver;  //This driver don't have life
+	  public FormPage(AndroidDriver driver){
+	   this.driver = driver;   //Giving life or Activating
+	   //this refers to Local variable referred with it
+	   //refer current class instance with 'this'
+	  }
+	 -PageFactory.initElements() -> initElements() expects two argument                      
+	                               page object -> this -> refers to current class object/instance
+								   Decorator 
+								   PageFactory.initElements(new AppiumFieldDecorator(driver), this);
+								   PageFactory.initElements() initializes elements defined with annotations like @FindBy or Appium-specific annotations. 
+								   In Appium, we typically use it with AppiumFieldDecorator so mobile elements are lazily initialized and can use mobile locator strategies.
+	 -It will initialize element  -> does the construction behind the scene like below
+	  driver.findElement(By.id("___"));
+	  When we create object -> all objects what you defined in pageObject will initialized behind screenshot
+	 -It is expecting field decorators -> That means you have to tell what kind of tool you are using so that, it knows how to construction
+	  For appium we have -> AppiumFieldDecorator(driver);
+	 eg: public FormPage(AndroidDriver driver){
+	      this.driver = driver;
+		  PageFactory.initElements(new AppiumFieldDecorator(driver),this);
+	    }
+		
+   -Create action methods in the PageObject file to drive into tests:
+    ----------------------------------------------------------------
+public class FormPage {
+	AndroidDriver driver;
+	
+	public FormPage(AndroidDriver driver) {
+		this.driver = driver;
+		PageFactory.initElements(new AppiumFieldDecorator(driver), this);
+	}
+	
+	@AndroidFindBy(id="com.androidsample.generalstore:id/nameField")
+    private WebElement nameField;
+	
+	@AndroidFindBy(xpath="//android.widget.Radiobutton[@text='Female']")
+    private WebElement femaleOption;
+	
+	@AndroidFindBy(xpath="//android.widget.Radiobutton[@text='Male']")
+    private WebElement maleOption;
+	
+	public void setNameField(String name) {
+		nameField.sendKeys(name);
+		driver.hideKeyboard();
+	}
+	
+	public void setGender(String gender) {
+		if(gender.contains("female")) femaleOption.click();
+		else maleOption.click();	
+	}
+}
