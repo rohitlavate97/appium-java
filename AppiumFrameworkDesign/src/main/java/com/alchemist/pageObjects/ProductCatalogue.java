@@ -30,8 +30,9 @@ public class ProductCatalogue extends AndroidActions{
 		addToCart.get(index).click();
 	}
 	
-	public void goToCartPage() throws InterruptedException {
+	public CartPage goToCartPage() throws InterruptedException {
 		cart.click();
 		Thread.sleep(2000);
+		return new CartPage(driver);
 	}
 }
