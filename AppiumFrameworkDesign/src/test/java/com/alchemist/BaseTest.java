@@ -20,7 +20,7 @@ import io.appium.java_client.android.options.UiAutomator2Options;
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 import io.appium.java_client.service.local.AppiumServiceBuilder;
 
-public class BaseTest {
+public class BaseTest extends AppiumUtils{
 
 	public AndroidDriver driver;
 	public AppiumDriverLocalService service;

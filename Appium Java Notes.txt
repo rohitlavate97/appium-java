@@ -1515,3 +1515,219 @@ public class AppiumUtils {
 
   -Implement Test Strategy on deciding how to run tests in a file:
    --------------------------------------------------------------
+   - @BeforeClass(starting appium, invoking app) -> @Test(Java Class) -> @AfterClass(Stopping Server)
+   -If 100 tests -> above process reports 100 times -> costly
+   -Write more than one test in one class -> problem -> For second test -> As server is already started -> same driver which is initialized used here
+   ie second starts from where test ended
+   -Group tets logically ,for TC which not work seperate then  for each test here -> I need not freshly create driver and all.
+   
+   -Implement Test Setup and Test tear down methods for each test method:
+    --------------------------------------------------------------------
+	-Grouping test is good -> but you have to fix one problem
+	-If 1st test failed, somewhere in middle. Second test skips
+	 To fix it -> We have to use @BeforeMethod in Test class
+	-BeforeClass -> BeforeMethod -> Test -> BeforeMethod -> Test -> AfterClass
+	
+public class AndroidTC_1 extends BaseTest {
+	AndroidDriver driver;
+
+	@BeforeMethod
+	public void preSetup() {
+		// Set screen to home page
+		// As we know how to open any page with help of Activity class
+		Activity activity = new Activity("io.appium.android.apis",
+				"io.appium.android.apis.preference.PreferenceDependencies");
+		((JavascriptExecutor) driver).executeScript("mobile: startActivity", ImmutableMap.of("intent",
+				"com.androidsample.generalstore/com.androidsample.generalstore.MainActivity"));
+	}
+	
+   -To run all tests together using single testng.xml file:
+    ------------------------------------------------------
+	-create testng.xml file
+	-Right click on project -> TestNG -> Convert to TestNG
+	-Keep test name different for Android and iOS
+	-Keep seperate testng.xml for Android and iOS
+	
+<suite name="Suite">
+  <test thread-count="5" name="E2E">
+    <classes>
+      <class name="com.alchemist.AndroidTC_1"/>
+    </classes>
+  </test> <!-- Test -->
+    <test thread-count="5" name="Error Validation Test">
+    <classes>
+      <class name="com.alchemist.AndroidTC_1"/>
+    </classes>
+  </test> <!-- Test -->
+</suite> <!-- Suite -->
+
+  -Data Driven testing with Parameterization for Appium:
+   ----------------------------------------------------
+   -In fillForm() -> name, gender and country hardcoded
+   -Use @DataProvider for providing set of data -> return 2 dimensional array -> Object array as data can be anything
+   -Add it in test file
+   
+	@DataProvider
+	public Object[][] getData(){
+		return new Object[][] {{"rahul shetty", "female","Argentina"}}; //we can add multiple set of data
+	}
+	
+	@Test(dataProvider = "getData")
+	public void fillFormWithDataProvider(String name, String gender, String country) throws InterruptedException {
+		// FormPage formPage = new FormPage(driver); //it is already taken care of in
+		// BaseTest, configureApp()
+		formPage.setNameField(name);
+		formPage.setGender(gender);
+		formPage.setCountrySelection(country);
+		ProductCatalogue productCatalogue = formPage.submitForm();
+		productCatalogue.addItemToCartByIndex(0);
+		productCatalogue.addItemToCartByIndex(0);
+		CartPage cartPage = productCatalogue.goToCartPage();
+		double totalSum = cartPage.getProductsSum();
+		double displayFormattedSum = cartPage.getTotalAmountDisplayed();
+		Assert.assertEquals(totalSum, displayFormattedSum);
+		cartPage.acceptTermsConditions();
+		cartPage.submitOrder();
+	}
+	
+  -Parameterize the test data with multiple data sets using TestNG dataProvider:
+   ----------------------------------------------------------------------------
+   -We can add another set of data -> Test will run for number of set of data
+    As test is running immediately after first test -> initial setup in BeforeClass -> so driver will not reset, it will not start from scratch. second test
+	will run from that place only. we should reset state of app to open base screen -> so write setActivity()
+   -create setActivity() method in FormPage 
+  	public void setActivity() {
+		Activity activity = new Activity("io.appium.android.apis",
+				"io.appium.android.apis.preference.PreferenceDependencies");
+		((JavascriptExecutor) driver).executeScript("mobile: startActivity", ImmutableMap.of("intent",
+				"com.androidsample.generalstore/com.androidsample.generalstore.MainActivity"));
+	}
+   -modify presetup() in test class
+	@BeforeMethod
+	public void preSetup() {
+		// Set screen to home page
+		// As we know how to open any page with help of Activity class
+		formPage.setActivity();
+	}
+   
+  -How to drive the data from JSON file and load into HashMap for parameterization:
+   -------------------------------------------------------------------------------
+   Add dependencies -> Apache-commons io
+                       jackson-databind
+					   -As we need some mapper which reads json string to HashMap
+					   parse Json file -> Json String (commons-io) -> HashMap(Jackson) -> Testcase(TestNG data provider)
+   create testData package --> create ecommerce.json
+[
+	{
+		"name": "rahul shetty",
+		"gender": "female",
+		"country": "Argentina"
+	},
+	{
+		"name": "shetty",
+		"gender": "male",
+		"country": "Argentina"
+	}
+]
+
+  Note: driver whatever required, we will send from page object file, we really need not initialize.
+public abstract class AppiumUtils {
+	/*
+	 * AppiumDriver driver;
+	 * 
+	 * public AppiumUtils(AppiumDriver driver) { this.driver = driver; }
+	 */
+
+	public Double getFormattedAmount(String amount) {
+		Double price = Double.parseDouble(amount.substring(1));
+		return price;
+	}
+
+	public void waitForElementToAppear(WebElement ele, AppiumDriver driver) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+		wait.until(ExpectedConditions.attributeContains(ele, "text", "Cart"));
+	}
+
+	public List<HashMap<String, String>> getJsonData(String jsonFilePath) throws IOException {
+
+	    String jsonContent = FileUtils.readFileToString(
+	            new File(jsonFilePath),
+	            StandardCharsets.UTF_8
+	    );
+	    ObjectMapper mapper = new ObjectMapper();
+	    List<HashMap<String, String>> data =
+	            mapper.readValue(
+	                    jsonContent,
+	                    new TypeReference<List<HashMap<String, String>>>() {}
+	            );
+	    return data;
+	}
+}
+
+public class AndroidActions extends AppiumUtils{
+	AndroidDriver driver;
+
+	public AndroidActions(AndroidDriver driver) {
+		//super(driver);  //remove it now
+		this.driver = driver;
+	}
+	
+-Inherit AppiumUtils in BaseTest.java
+public class BaseTest extends AppiumUtils{
+
+  -Data Utility which reads json and parse it for TestNG dataProvider input:
+   ------------------------------------------------------------------------
+public class AndroidTC_1 extends BaseTest {
+	AndroidDriver driver;
+
+	@BeforeMethod
+	public void preSetup() {
+		// Set screen to home page
+		// As we know how to open any page with help of Activity class
+		formPage.setActivity();
+	}
+
+	@DataProvider
+	public Object[][] getData() {
+		return new Object[][] { { "rahul shetty", "female", "Argentina" } }; // we can add multiple set of data
+	}
+
+	@DataProvider
+	public Object[][] getJSONData() throws IOException {
+		List<HashMap<String, String>> data = getJsonData(
+				System.getProperty("user.dir") + "//src//main//java//com//alchemist//testData//ecommerce.json");
+		return new Object[][] {{data.get(0)},{data.get(1)}};
+	}
+	
+//	@DataProvider
+//	public Object[][] getJSONData() throws IOException {
+//	    List<HashMap<String, String>> data = getJsonData(
+//	            System.getProperty("user.dir")
+//	                    + "/src/main/java/com/alchemist/testData/ecommerce.json"
+//	    );
+//	    Object[][] obj = new Object[data.size()][1];
+//	    for (int i = 0; i < data.size(); i++) {
+//	        obj[i][0] = data.get(i);
+//	    }
+//	    return obj;
+//	}
+
+	@Test(dataProvider = "getJSONData")
+	public void fillForm(HashMap<String,String> input) throws InterruptedException {
+		// FormPage formPage = new FormPage(driver); //it is already taken care of in
+		// BaseTest, configureApp()
+		formPage.setNameField(input.get("name"));
+		formPage.setGender(input.get("gender"));
+		formPage.setCountrySelection(input.get("country"));
+		ProductCatalogue productCatalogue = formPage.submitForm();
+		productCatalogue.addItemToCartByIndex(0);
+		productCatalogue.addItemToCartByIndex(0);
+		CartPage cartPage = productCatalogue.goToCartPage();
+		double totalSum = cartPage.getProductsSum();
+		double displayFormattedSum = cartPage.getTotalAmountDisplayed();
+		Assert.assertEquals(totalSum, displayFormattedSum);
+		cartPage.acceptTermsConditions();
+		cartPage.submitOrder();
+	}
+	
+Note: Remove super(driver) from all utils classes.
