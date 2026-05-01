@@ -17,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.service.local.AppiumDriverLocalService;
+import io.appium.java_client.service.local.AppiumServiceBuilder;
 
 public abstract class AppiumUtils {
 	/*
@@ -24,6 +26,13 @@ public abstract class AppiumUtils {
 	 * 
 	 * public AppiumUtils(AppiumDriver driver) { this.driver = driver; }
 	 */
+	public AppiumDriverLocalService service;
+	public AppiumDriverLocalService startAppiumServer(String ipAddress, int port) {
+		//service = new AppiumServiceBuilder().withIPAddress("127.0.0.1").usingPort(4723).build();
+		service = new AppiumServiceBuilder().withIPAddress(ipAddress).usingPort(port).build();
+		service.start();
+		return service;
+	}
 
 	public Double getFormattedAmount(String amount) {
 		Double price = Double.parseDouble(amount.substring(1));

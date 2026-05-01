@@ -1731,3 +1731,70 @@ public class AndroidTC_1 extends BaseTest {
 	}
 	
 Note: Remove super(driver) from all utils classes.
+Note: Copy apps in our project -> src/test/java -> resources folder -> com.alchemist.resources -> General Store.apk
+      Update path in code
+	  Also do setting for iOS too.
+
+--Setting up Global Configuaration Variables and Generating reports:
+  -----------------------------------------------------------------
+  -Optimize Android and iOS Test with reusable methods from AppiumUtils:
+   --------------------------------------------------------------------
+   As in real time, ip address might change from '127.0.0.1'
+   IP Address and Port are recommended to send from properties file
+   -create resources package inside src/main/java --> com.alchemist.resources --> create data.json file as below
+ipAddress=127.0.0.1
+port=4723
+browser=chrome
+AndroidDeviceName=RahulPhone
+   
+public abstract class AppiumUtils {
+	/*
+	 * AppiumDriver driver;
+	 * 
+	 * public AppiumUtils(AppiumDriver driver) { this.driver = driver; }
+	 */
+	public AppiumDriverLocalService service;
+	public AppiumDriverLocalService startAppiumServer(String ipAddress, int port) {
+		//service = new AppiumServiceBuilder().withIPAddress("127.0.0.1").usingPort(4723).build();
+		service = new AppiumServiceBuilder().withIPAddress(ipAddress).usingPort(port).build();
+		service.start();
+		return service;
+	}
+
+    .
+	.
+	
+public class BaseTest extends AppiumUtils {
+
+	public AndroidDriver driver;
+	public AppiumDriverLocalService service;
+	public FormPage formPage;
+
+	@BeforeClass
+	public void configureApp() throws IOException {
+		Properties prop = new Properties();
+		FileInputStream fis = new FileInputStream(System.getProperty("user.dir") + "//src//main//java//com//alchemist//resources//data.json");
+		prop.load(fis);
+		String ipAddress = prop.getProperty("ipAddress");
+		String port = prop.getProperty("port");
+		service = startAppiumServer(ipAddress, Integer.parseInt(port));
+		UiAutomator2Options options = new UiAutomator2Options();
+		options.setChromedriverExecutable("//users//rahulshetty//documents//chromedriver");
+		options.setDeviceName("RohitPhone");
+		options.setApp("//users//rohit//Appium//src//test//java//resources//ApiDemos-debug.apk"); // Set app location
+																									// here
+		//AndroidDriver driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
+		AndroidDriver driver = new AndroidDriver(service.getUrl(), options);
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+		formPage = new FormPage(driver);
+	}
+
+	@AfterClass
+	public void tearDown() {
+		driver.quit();
+		service.stop();
+	}
+}
+
+--Introduction to Extent Reports:
+  ------------------------------
