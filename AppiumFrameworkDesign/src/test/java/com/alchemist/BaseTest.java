@@ -34,8 +34,12 @@ public class BaseTest extends AppiumUtils {
 		FileInputStream fis = new FileInputStream(
 				System.getProperty("user.dir") + "//src//main//java//com//alchemist//resources//data.json");
 		prop.load(fis);
-		String ipAddress = prop.getProperty("ipAddress");
-		String port = prop.getProperty("port");
+ 		//String ipAddress = prop.getProperty("ipAddress");
+		String ipAddress = System.getProperty("ipAddress") != null ? System.getProperty("ipAddress")
+				: prop.getProperty("ipAddress");
+		//String port = prop.getProperty("port");
+		String port = System.getProperty("port") != null ? System.getProperty("port")
+				: prop.getProperty("port");
 		service = startAppiumServer(ipAddress, Integer.parseInt(port));
 		UiAutomator2Options options = new UiAutomator2Options();
 		options.setChromedriverExecutable("//users//rahulshetty//documents//chromedriver");

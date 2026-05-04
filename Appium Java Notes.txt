@@ -2031,5 +2031,60 @@ public class Listeners extends AppiumUtils implements ITestListener {
 	
   --How to trigger the framework tests using Maven commands and options:
     -------------------------------------------------------------------
+	-Install maven, set MAVEN_HOME
 	-Whatever you want to run from maven, you should have entry in pom.xml
+	-Create TestNGSuites and add testng.xml in it
 	
+	</dependencies>
+	<profiles>
+	  <profile>
+	     <id>Regression</id>
+	     <build>
+	       <pluginManagement>
+	          <plugins>
+	            <plugin>
+	               <groupId>org.apache.maven</groupId>
+	               <artifactId>maven-surefire-plugin</artifactId>
+	               <version>3.0.0-M7</version>
+	               <configuration>
+	                 <suiteXmlFiles>
+	                   <suiteXmlFile>/AppiumFrameworkDesign/TestNGSuites/testng.xml</suiteXmlFile> <!--This file will be checked in your parent hierarchy-->
+	                 </suiteXmlFiles>
+	               </configuration>
+	            </plugin>
+	          </plugins>
+	       </pluginManagement>
+	     </build>
+	  </profile>
+	</profiles>
+</project>
+
+   -Do same for smoke also
+   -Open cmd -> cd to project path
+   %mvn test -PRegression
+   -write a code such way, if we give command maven will take it, otherwise from properties file
+   -Modify BaseTest.java ->
+	public void configureApp() throws IOException {
+		Properties prop = new Properties();
+		FileInputStream fis = new FileInputStream(
+				System.getProperty("user.dir") + "//src//main//java//com//alchemist//resources//data.json");
+		prop.load(fis);
+ 		//String ipAddress = prop.getProperty("ipAddress");
+		String ipAddress = System.getProperty("ipAddress") != null ? System.getProperty("ipAddress")
+				: prop.getProperty("ipAddress");
+		//String port = prop.getProperty("port");
+		String port = System.getProperty("port") != null ? System.getProperty("port")
+				: prop.getProperty("port");
+		service = startAppiumServer(ipAddress, Integer.parseInt(port));
+		
+	-Now can run test with Param or without param
+		
+--Setting up Jenkins CICD tool in local machine:
+  ---------------------------------------------
+  -Download Jenkins Generic Java Pacakge(.war)-> Go to cmd -> cd to path where war present
+   >java -jar jenkins.war -httpPort=9090
+  -Integrate the Appium framework with Jenkins and schedule, parametrize the job:
+   -----------------------------------------------------------------------------
+   -Jenkins -> New item -> Appium Framework -> Source code management -> Advanced(Above it) -> Use Custom Workspace -> Directory path.
+											   Build -> Add build step -> Invoke-top-level maven target -> Goals -> test -PRegression (not needed to write 'mvn')
+											   Click on Build Now
