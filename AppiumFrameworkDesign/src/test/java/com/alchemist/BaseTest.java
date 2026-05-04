@@ -28,7 +28,7 @@ public class BaseTest extends AppiumUtils {
 	public AppiumDriverLocalService service;
 	public FormPage formPage;
 
-	@BeforeClass
+	@BeforeClass(alwaysRun = true)
 	public void configureApp() throws IOException {
 		Properties prop = new Properties();
 		FileInputStream fis = new FileInputStream(
@@ -49,7 +49,7 @@ public class BaseTest extends AppiumUtils {
 		formPage = new FormPage(driver);
 	}
 
-	@AfterClass
+	@AfterClass(alwaysRun = true)
 	public void tearDown() {
 		driver.quit();
 		service.stop();

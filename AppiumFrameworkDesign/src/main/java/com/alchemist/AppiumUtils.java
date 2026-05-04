@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -57,5 +58,15 @@ public abstract class AppiumUtils {
 	                    new TypeReference<List<HashMap<String, String>>>() {}
 	            );
 	    return data;
+	}
+	
+	public String getScreenshotPath(String testCaseName, AppiumDriver driver) throws IOException {
+	    File src = driver.getScreenshotAs(OutputType.FILE);
+	    String dest = System.getProperty("user.dir")
+	            + "/reports/"
+	            + testCaseName
+	            + ".png";
+	    FileUtils.copyFile(src, new File(dest));
+	    return dest;   //So that, it can be attached in index.html file
 	}
 }

@@ -21,7 +21,7 @@ import io.appium.java_client.android.AndroidDriver;
 public class AndroidTC_1 extends BaseTest {
 	AndroidDriver driver;
 
-	@BeforeMethod
+	@BeforeMethod(alwaysRun = true)
 	public void preSetup() {
 		// Set screen to home page
 		// As we know how to open any page with help of Activity class
@@ -53,7 +53,7 @@ public class AndroidTC_1 extends BaseTest {
 //	    return obj;
 //	}
 
-	@Test(dataProvider = "getJSONData")
+	@Test(dataProvider = "getJSONData",groups = {"smoke"})
 	public void fillForm(HashMap<String,String> input) throws InterruptedException {
 		// FormPage formPage = new FormPage(driver); //it is already taken care of in
 		// BaseTest, configureApp()

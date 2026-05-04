@@ -1867,3 +1867,169 @@ Note: ExtentTest test = extent.createTest("Initial Demo"); -> catch object, uniq
    -------------------------------------------------------------------------
    -Add dependency in project
    -Create ExtentReportNG class in TestUtils package
+
+package com.alchemist.utils;
+
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+
+public class ExtentReportNG {
+	static ExtentReports extent;
+	static ExtentReports getReporterObject() {
+		String path = System.getProperty("user.dir") + "//reports//index.html";
+		ExtentSparkReporter reporter = new ExtentSparkReporter(path);
+		reporter.config().setReportName("Appium Automation Results");
+		reporter.config().setDocumentTitle("Test Results");
+		extent = new ExtentReports();
+		extent.attachReporter(reporter);
+		extent.setSystemInfo("Tester", "Rohit");
+		return extent;
+	}
+}
+
+  -We have to createTest() at start of each test -> Not feasible if we have more than 100 tests or more, so their is TestNG listener
+  -Create new class under Testutil package -> Listeners.java
+  
+package com.alchemist.utils;
+
+import org.testng.ITestContext;
+import org.testng.ITestListener;
+import org.testng.ITestResult;
+
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+
+public class Listeners implements ITestListener {
+
+    ExtentReports extent = ExtentReportNG.getReporterObject();
+    ExtentTest test;
+
+    @Override
+    public void onTestStart(ITestResult result) {
+        test = extent.createTest(result.getMethod().getMethodName());
+    }
+
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        //test.pass("Test Passed");
+    	test.log(Status.PASS, "Test Passed");
+    }
+
+    @Override
+    public void onTestFailure(ITestResult result) {
+        test.fail(result.getThrowable());
+        // capture screenshot here
+    }
+
+    @Override
+    public void onFinish(ITestContext context) {
+        extent.flush();
+    }
+}
+  -But tests don't have any knowledge about listeners, have to give this info in testng.xml
+<suite name="Suite">
+	<listeners>
+		<listener class-name="com.alchemist.utils.Listeners" />
+	</listeners>
+	<test thread-count="5" name="E2E">
+		<classes>
+			<class name="com.alchemist.AndroidTC_1" />
+		</classes>
+	</test> <!--Test -->
+	<test thread-count="5" name="Error Validation Test">
+		<classes>
+			<class name="com.alchemist.AndroidTC_1" />
+		</classes>
+	</test> <!--Test -->
+</suite> <!--Suite -->
+
+
+  --Screenshots, TestNG Listener, Maven Integration with Jenkins:
+    ------------------------------------------------------------
+	-Go to AppiumUtils.java and add getScreenshot() 
+	public String getScreenshotPath(String testCaseName, AppiumDriver driver) throws IOException {
+	    File src = driver.getScreenshotAs(OutputType.FILE);
+	    String dest = System.getProperty("user.dir")
+	            + "/reports/"
+	            + testCaseName
+	            + ".png";
+	    FileUtils.copyFile(src, new File(dest));
+	    return dest;   //So that, it can be attached in index.html file
+	}
+	
+	-Go to Listener.java -> Modify onTestFailure()
+public class Listeners extends AppiumUtils implements ITestListener {
+
+	ExtentReports extent = ExtentReportNG.getReporterObject();
+	ExtentTest test;
+	AppiumDriver driver;
+
+	@Override
+	public void onTestStart(ITestResult result) {
+		test = extent.createTest(result.getMethod().getMethodName());
+	}
+
+	@Override
+	public void onTestSuccess(ITestResult result) {
+		// test.pass("Test Passed");
+		test.log(Status.PASS, "Test Passed");
+	}
+
+	@Override
+	public void onTestFailure(ITestResult result) {
+		// result holds the information about the test method
+		test.fail(result.getThrowable());
+		try {
+			driver = (AppiumDriver) result.getTestClass().getRealClass().getField("driver").get(result.getInstance());
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+		try {
+			test.addScreenCaptureFromPath(getScreenshotPath(result.getMethod().getMethodName(), driver),
+					result.getMethod().getMethodName());   //first argument is path, second is title
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onFinish(ITestContext context) {
+		extent.flush();
+	}
+} 
+
+  -How to run selected tests from pool of tests using TestNG groups
+  create testng-smoke.xml and tag groups in test
+  
+  	@Test(dataProvider = "getJSONData",groups = {"smoke"})
+	public void fillForm(HashMap<String,String> input) throws InterruptedException {
+	
+<suite name="Suite">
+	<groups>
+		<run>
+			<include name="smoke" />
+		</run>
+	</groups>
+	<listeners>
+		<listener class-name="com.alchemist.utils.Listeners" />
+	</listeners>
+	<test thread-count="5" name="E2E">
+		<classes>
+			<class name="com.alchemist.AndroidTC_1" />
+		</classes>
+	</test> <!--Test -->
+	<test thread-count="5" name="Error Validation Test">
+		<classes>
+			<class name="com.alchemist.AndroidTC_1" />
+		</classes>
+	</test> <!--Test -->
+</suite> <!--Suite -->
+
+  - But it will check @BeforeClass,@AfterClass tagged with "smoke" or not
+    So use (alwaysRun = true) attribute, also @BeforeMethod,@BeforeClass
+	
+  --How to trigger the framework tests using Maven commands and options:
+    -------------------------------------------------------------------
+	-Whatever you want to run from maven, you should have entry in pom.xml
+	

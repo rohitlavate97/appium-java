@@ -1,4 +1,9 @@
 <suite name="Suite">
+	<groups>
+		<run>
+			<include name="smoke" />
+		</run>
+	</groups>
 	<listeners>
 		<listener class-name="com.alchemist.utils.Listeners" />
 	</listeners>
