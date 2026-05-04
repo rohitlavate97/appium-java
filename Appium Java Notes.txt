@@ -2088,3 +2088,32 @@ public class Listeners extends AppiumUtils implements ITestListener {
    -Jenkins -> New item -> Appium Framework -> Source code management -> Advanced(Above it) -> Use Custom Workspace -> Directory path.
 											   Build -> Add build step -> Invoke-top-level maven target -> Goals -> test -PRegression (not needed to write 'mvn')
 											   Click on Build Now
+			-We can parametrize -> Go to configure -> ☑ This project is parameterized -> Choice parameter -> Name=profile, choices = Regression, Smoke
+			-Go to Build -> Goals -> test -P"$profile" -> Save
+			-Build with parameters -> Select option -> Build
+			-We can send Runtime variable also
+			 Go to configure -> Goals -> test -P"$profile" -DipAddress="$server"  -> create another choice parameter-> Name=server, choices=127.0.01,234.242.323.2 -> save
+			-Build with Parameter -> profile and server choices -> Click on build
+			-We can go to workspace -> can open reports
+			-We can schedule job -> configure -> Build triggers
+* * * * *
+│ │ │ │ │
+│ │ │ │ └── Day of Week (0–7)  Sun=0 or 7
+│ │ │ └──── Month (1–12)
+│ │ └────── Day of Month (1–31)
+│ └──────── Hour (0–23)
+└────────── Minute (0–59)
+
+ex: 30 9 * * *  -> At 9:30 AM every day
+30 -> minute
+9  -> hour
+*  -> every day
+*  -> every month
+*  -> every weekday
+
+*/15 * * * * -> Every 15 minutes
+0 0 1 * *  ->1st day of every month
+0 9 * * * -> Every day at 9 AM
+0 0 * * * ->Every day at midnight
+0 2 * * * -> Run every day at 2 AM
+			
