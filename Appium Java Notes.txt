@@ -1118,6 +1118,40 @@ public class MobileBrowserTest extends BrowserBaseTest{
 
 --Framework: Code design patterns
   ---------
+
+                         +----------------------+
+                         |     AppiumUtils      |
+                         |    (Common Utils)    |
+                         +----------------------+
+                                   |
+               -------------------------------------------
+               |                                         |
+               v                                         v
+     +--------------------+                   +--------------------+
+     |   AndroidActions   |                   |     IOSActions     |
+     | (Platform Utils)   |                   | (Platform Utils)   |
+     +--------------------+                   +--------------------+
+          /       |       \                        /          \
+         /        |        \                      /            \
+        v         v         v                    v              v
++-------------+ +---------+ +---------+   +-------------+ +-------------+
+|  FormPage   | | Product | |  Cart   |   |  HomePage   | | AlertViews  |
+| (Page Obj)  | |(PageObj)| |(PageObj)|   | (Page Obj)  | | (Page Obj)  |
++-------------+ +---------+ +---------+   +-------------+ +-------------+
+        \          |          /                   \            /
+         \         |         /                     \          /
+          ---------v---------                       ----v-----
+          +------------------+                     +------------------+
+          |   AndroidTest    |                     |     IOSTest      |
+          |   (Test Layer)   |                     |   (Test Layer)   |
+          +------------------+                     +------------------+
+                   |                                        |
+                   v                                        v
+          +------------------+                     +------------------+
+          | AndroidBaseTest  |                     |   IOSBaseTest    |
+          | (Configuration)  |                     | (Configuration)  |
+          +------------------+                     +------------------+
+
   -Understand the importance of framework design 
    ---------------------------------------------
    create maven project --> Group id -> com.alchemist
@@ -2117,3 +2151,42 @@ ex: 30 9 * * *  -> At 9:30 AM every day
 0 0 * * * ->Every day at midnight
 0 2 * * * -> Run every day at 2 AM
 			
+--Running Appium Framework on the cloud servers with Parallel execution:
+  ---------------------------------------------------------------------
+  -What cloud infrastructure testing? Integrate BrowserStack to appium Framework:
+   -----------------------------------------------------------------------------
+   -Cloud platform -> Provides infrastructure
+    Connect test -> Select machines and run 
+   -Go to BrowserStack.com -> App Testing -> App Automate -> Sign In -> Get your access key -> Click and copy it
+   -Upload app -> The app you are going to test
+    Moment we upload -> 'bs://---' -> we get it,copy it.
+   -Install BrowserStack plugin in eclipse
+   -Connect project to Browserstack compatible -> Copy projet and name it 'AppiumFrameworkCloud' (Appium and TestNG should be up to date -> Latest version)
+    Select project -> Right Click -> BrowserStack -> Integrate with app automate sdk ->Browserstack username, access key -> paste
+	                                                                                   ProjectName -> (As per your requirement)  -> Integrate
+	Build Success -> Refresh
+	We can see .yaml file -> browserstack.yml file  -> Build Identifier ie every build we run, we get new buildIdentifier
+	//app: -> we need to tell which app you are testing
+	app:__   -> paste link we got after upload/app deployed ie 'bs://---'
+	platforms -> on which platforms you want to run, all can be designed here (on UI, If scroll down -> We can select more android devices)
+	parallelPerPlatform -> how many tests it should run parallelly per platform
+	browserStackLocal -> log will generated in local
+	
+  -Run existing Appium Tests in parallel on BrowserStack cloud with yml changes:
+   ----------------------------------------------------------------------------
+   - When we run test -> It will goes to AndroidBaseTest -> Get all configuration and start server in local and activvate driver
+   - Now with Browserstack compatible -> Automatically something added for all testng.xml file -> browserstack-java-sdk 
+     ie we are saying to invoke this sdk/jar before you run any test
+	 also new dependency added here
+   - As jar will activated and open -> it will hold and override existing setting and inject .yml configuration file into that step
+     It overrides 'options' and inject browserstack options
+	 driver = new AndroidDriver(service.getUrl(),options);
+	 Now it will behave as browserstack tells
+   - Open terminal -> cd to project path -> %mvn test -PRegression
+     Now check browserstack -> if running?
+	 It completes execution -> we can see results
+	 Go inside test -> and see execution video also logs
+	 Refresh project -> log folder generated -> Open log file -> copy url of dashboard and paste in browser
+   - For any reason if you want to trigger in local -> %BROWSERSTACK_AUTOMATION=false  -> run it first, then -> %mvn test -PRegression
+     It holds browserstack sdk from running
+	 Note: For browserstack, testng should be atleast version 7.5
