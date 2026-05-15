@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="TestRail Integration Suite" parallel="methods" thread-count="4">
+
+    <listeners>
+        <listener class-name="com.automation.testrail.listener.TestRailListener"/>
+    </listeners>
+
+    <test name="Login Tests">
+        <classes>
+            <class name="com.automation.testrail.tests.LoginTest"/>
+        </classes>
+    </test>
+</suite>

@@ -1,0 +1,10 @@
+<aspectj>
+    <weaver options="-verbose -showWeaveInfo">
+        <!-- Only weave classes in our project packages -->
+        <include within="com.automation.testrail..*"/>
+    </weaver>
+
+    <aspects>
+        <aspect name="com.automation.testrail.aspect.StepAspect"/>
+    </aspects>
+</aspectj>
